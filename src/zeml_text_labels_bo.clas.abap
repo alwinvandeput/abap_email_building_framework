@@ -107,7 +107,9 @@ CLASS ZEML_TEXT_LABELS_BO IMPLEMENTATION.
 
     ENDTRY.
 
-    rs_ddic_field = lr_element_descr->get_ddic_field( ).
+    rs_ddic_field =
+      lr_element_descr->get_ddic_field(
+        p_langu = me->gs_data-language_id ).
 
   ENDMETHOD.
 

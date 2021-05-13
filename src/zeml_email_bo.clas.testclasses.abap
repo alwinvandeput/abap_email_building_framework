@@ -84,7 +84,7 @@ CLASS ltd_text_labels_bo IMPLEMENTATION.
           quantity    = get_long_label('DZMENG')
           nett_amount = get_long_label('NETWR_AK')
           total       = 'Gesamt'
-          footer      = |Vielen Dank für den Kauf bei <b><i>myCompany</i></b>.|
+          footer      = |Vielen Dank für den Kauf bei <b><i>myCompany</i></b>.<br>Auf wiedersehen...|
         ).
 
     ENDCASE.
@@ -275,11 +275,12 @@ CLASS unit_test IMPLEMENTATION.
             iv_language_id  = lv_language_id ).
         DATA(lo_email_data) = REF #( ls_sales_order ).
 
-*        "Set Text label test double - so no SO10 text is needed
-*        DATA(lo_text_labels_bo_ft) = NEW ltd_text_labels_bo_ft( ).
-*        zeml_text_labels_bo_ft=>set_factory( lo_text_labels_bo_ft ).
+        "Set Text label test double - so no SO10 text is needed
+        DATA(lo_text_labels_bo_ft) = NEW ltd_text_labels_bo_ft( ).
+        zeml_text_labels_bo_ft=>set_factory( lo_text_labels_bo_ft ).
 
-        "Execute
+        "Send email
+        "- Set Email data
         DATA(ls_email_data) =
           VALUE zeml_email_bo=>gts_data(
             content_type       = lv_content_type
@@ -310,12 +311,11 @@ CLASS unit_test IMPLEMENTATION.
             attachments = VALUE #( )
           ).
 
-        "Set language and country
-        ls_sales_order-country_key    = lv_country_key.
-
+        "- Instantiate email
         DATA(lr_email_bo) =
           zeml_email_bo_ft=>get_factory( )->create_email( ls_email_data ).
 
+        "- Send email
         lr_email_bo->send( ).
 
       CATCH zcx_eml_return3 INTO DATA(lr_return3).
