@@ -11,7 +11,7 @@
 
 <!--  Currency symbols - more symbols can be added. -->
 <!-- See website: https://en.wikipedia.org/wiki/Language_and_the_euro#Summary -->
-<sap:function name="eml:get_before_currency_symbol">
+<sap:function name="eml:get_left_currency_symbol">
   <sap:argument name ="iv_country_key"/>
   <sap:argument name ="iv_currency_key"/>
   <sap:result define = "
@@ -25,7 +25,7 @@
     )))"/>
 </sap:function>
 
-<sap:function name="eml:get_after_currency_symbol">
+<sap:function name="eml:get_right_currency_symbol">
   <sap:argument name ="iv_country_key"/>
   <sap:argument name ="iv_currency_key"/>
   <sap:result define = "

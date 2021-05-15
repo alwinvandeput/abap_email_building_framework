@@ -42,7 +42,7 @@ CLASS ZEML_COUNTRY_SETTINGS_BO IMPLEMENTATION.
 
     IF iv_country_key IS NOT INITIAL.
 
-      DATA(lo_country_bo) = zeml_country_bo_ft=>get_factory( )->get_instance_by_key( iv_country_key ).
+      DATA(lo_country_bo) = zeml_country_bo_ft=>get_factory( )->get_country_bo_by_key( iv_country_key ).
 
       ro_country_settings_bo->gs_country_settings =
         lo_country_bo->zeml_country_settings_if~get_country_settings( ).

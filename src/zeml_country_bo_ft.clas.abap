@@ -10,7 +10,7 @@ public section.
   class-methods SET_FACTORY
     importing
       !IR_FACTORY type ref to ZEML_COUNTRY_BO_FT .
-  methods GET_INSTANCE_BY_KEY
+  methods GET_COUNTRY_BO_BY_KEY
     importing
       !IV_COUNTRY type T005X-LAND
     returning
@@ -28,22 +28,7 @@ ENDCLASS.
 CLASS ZEML_COUNTRY_BO_FT IMPLEMENTATION.
 
 
-  METHOD get_factory.
-
-    IF gr_factory IS NOT INITIAL.
-
-      rr_factory = gr_factory.
-
-      RETURN.
-
-    ENDIF.
-
-    rr_factory = NEW #( ).
-
-  ENDMETHOD.
-
-
-  METHOD get_instance_by_key.
+  METHOD GET_COUNTRY_BO_BY_KEY.
 
     IF iv_country IS INITIAL.
 
@@ -56,6 +41,21 @@ CLASS ZEML_COUNTRY_BO_FT IMPLEMENTATION.
     ro_country_settings_bo = NEW #( ).
 
     ro_country_settings_bo->gv_country_key = iv_country.
+
+  ENDMETHOD.
+
+
+  METHOD get_factory.
+
+    IF gr_factory IS NOT INITIAL.
+
+      rr_factory = gr_factory.
+
+      RETURN.
+
+    ENDIF.
+
+    rr_factory = NEW #( ).
 
   ENDMETHOD.
 

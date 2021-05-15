@@ -80,7 +80,7 @@
 
 <xsl:value-of select="LABEL/TOTAL"/>
 <xsl:text>: </xsl:text>
-<xsl:value-of select="CONTENT/CURRENCY"/>
+<xsl:value-of select="CONTENT/CURRENCY_KEY"/>
 <xsl:text> </xsl:text>
 <xsl:value-of select="format-number(CONTENT/NETT_AMOUNT, $amount_format, $decimal_format)"/>
 </xsl:template>

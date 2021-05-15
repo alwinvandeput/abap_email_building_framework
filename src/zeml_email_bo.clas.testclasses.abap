@@ -139,16 +139,17 @@ CLASS ltd_sales_order_dp DEFINITION FOR TESTING.
       END OF gts_sales_order_item,
 
       BEGIN OF gts_sales_order,
-        order_no    TYPE vbak-vbeln,
-        nett_amount TYPE vbak-netwr,
-        currency    TYPE vbak-waerk,
-        country_key TYPE t005x-land,
-        language_id TYPE syst-langu,
-        items       TYPE STANDARD TABLE OF gts_sales_order_item WITH DEFAULT KEY,
+        order_no     TYPE vbak-vbeln,
+        nett_amount  TYPE vbak-netwr,
+        currency_key TYPE vbak-waerk,
+        country_key  TYPE t005x-land,
+        language_id  TYPE syst-langu,
+        items        TYPE STANDARD TABLE OF gts_sales_order_item WITH DEFAULT KEY,
       END OF gts_sales_order.
 
     METHODS get_sales_order
       IMPORTING iv_country_key        TYPE t005x-land
+                iv_currency_key       TYPE vbak-waerk
                 iv_language_id        TYPE syst-langu
       RETURNING VALUE(rs_sales_order) TYPE gts_sales_order.
 
@@ -164,7 +165,7 @@ CLASS ltd_sales_order_dp IMPLEMENTATION.
 *            sold_to_party TYPE gts_address,
 *            ship_to_party TYPE gts_address,
         nett_amount   = '1700.99'
-        currency      = 'EUR'
+        currency_key  = iv_currency_key
         country_key   = iv_country_key
         language_id   = iv_language_id
         items = VALUE #(
@@ -272,9 +273,11 @@ CLASS unit_test IMPLEMENTATION.
         DATA(ls_sales_order) =
           lo_sales_order_dp->get_sales_order(
             iv_country_key  = lv_country_key
+            iv_currency_key = lv_currency_key
             iv_language_id  = lv_language_id ).
         DATA(lo_email_data) = REF #( ls_sales_order ).
 
+        "---------------------------------------------------------
         "Set Text label test double - so no SO10 text is needed
         DATA(lo_text_labels_bo_ft) = NEW ltd_text_labels_bo_ft( ).
         zeml_text_labels_bo_ft=>set_factory( lo_text_labels_bo_ft ).
@@ -288,9 +291,10 @@ CLASS unit_test IMPLEMENTATION.
             label_set_name     = 'ZEML_EXAMPLE_SO_EMAIL_LABELS'
 
             country_key        = ls_sales_order-country_key
-            currency_key       = lv_currency_key  "Optional field. It is used for currency symbol and currency decimal count
+            currency_key       = ls_sales_order-currency_key
             language_id        = ls_sales_order-language_id
-            user_name          = sy-uname
+
+            "user_name          = sy-uname
 
             importance         = '5'
             sensitivity        = ''
@@ -311,12 +315,12 @@ CLASS unit_test IMPLEMENTATION.
             attachments = VALUE #( )
           ).
 
-        "- Instantiate email
-        DATA(lr_email_bo) =
-          zeml_email_bo_ft=>get_factory( )->create_email( ls_email_data ).
+        "Send email
+        DATA(lo_email_bo) =
+          zeml_email_bo_ft=>get_factory( )->create_email(
+            ls_email_data ).
 
-        "- Send email
-        lr_email_bo->send( ).
+        lo_email_bo->send( ).
 
       CATCH zcx_eml_return3 INTO DATA(lr_return3).
 

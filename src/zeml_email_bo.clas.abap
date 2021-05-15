@@ -38,7 +38,7 @@ public section.
         label_set_name TYPE string,
 
         country_key    TYPE t005x-land,
-        currency_key   type tcurx-currkey,
+        currency_key   TYPE tcurx-currkey,
         language_id    TYPE tdspras,
         user_name      TYPE usr01-bname,
 
@@ -50,29 +50,17 @@ public section.
         email_data     TYPE REF TO data,
         attachments    TYPE gtt_attachments,
       END OF gts_data .
-
-  constants:
-    BEGIN OF gcs_content_type,
-        html       TYPE gtv_content_type VALUE 'HTML',
-        plain_text TYPE gtv_content_type VALUE 'PLAIN_TEXT',
-      END  OF gcs_content_type .
-
-  methods SEND
-    raising
-      CX_BCS
-      CX_XSLT_RUNTIME_ERROR
-      ZCX_EML_RETURN3 .
-protected section.
-
   types:
     BEGIN OF gts_settings,
         country_key            TYPE t005x-land,
         language_id            TYPE syst-langu,
-        number_format          TYPE t005x-xdezp,
         currency_key           TYPE tcurc-waers,
         currency_decimal_count TYPE tcurx-currdec,
+
+        number_format          TYPE t005x-xdezp,
         date_format            TYPE t005x-datfm,
         time_format            TYPE t005x-timefm,
+        user_name              TYPE syst-uname,
 
         input_country_key      TYPE t005x-land,
         input_language_id      TYPE syst-langu,
@@ -80,29 +68,45 @@ protected section.
         system_user_name       TYPE syst-uname,
       END OF gts_settings .
 
-  data GS_DATA type GTS_DATA .
+  constants:
+    BEGIN OF gcs_content_type,
+        html       TYPE gtv_content_type VALUE 'HTML',
+        plain_text TYPE gtv_content_type VALUE 'PLAIN_TEXT',
+      END  OF gcs_content_type .
 
-  methods CONVERT_INPUT_TO_OUTPUT
-    importing
-      !IV_FIELD_NAME type STRING
-      !IO_TYPE_DESCR type ref to CL_ABAP_TYPEDESCR
-    changing
-      !CA_DATA type ANY .
   methods GET_SETTINGS
     returning
       value(RS_SETTINGS) type GTS_SETTINGS
     raising
       ZCX_EML_RETURN3 .
-  methods GET_CONTENT_BY_XSLT
-    exporting
-      !EV_SUBJECT type SO_OBJ_DES
-      !ET_BODY_SOLI_TAB type SOLI_TAB
+  methods SET_DATA
+    importing
+      !IS_DATA type GTS_DATA .
+  methods SEND
     raising
+      CX_BCS
       CX_XSLT_RUNTIME_ERROR
       ZCX_EML_RETURN3 .
-  methods EXECUTE_CONVERSION_ROUTINES
-    returning
-      value(RO_COPY_CONTENT_DATA) type ref to DATA .
+  PROTECTED SECTION.
+
+    DATA gs_data TYPE gts_data .
+
+    METHODS convert_input_to_output
+      IMPORTING
+        !iv_field_name TYPE string
+        !io_type_descr TYPE REF TO cl_abap_typedescr
+      CHANGING
+        !ca_data       TYPE any .
+    METHODS get_content_by_xslt
+      EXPORTING
+        !ev_subject       TYPE so_obj_des
+        !et_body_soli_tab TYPE soli_tab
+      RAISING
+        cx_xslt_runtime_error
+        zcx_eml_return3 .
+    METHODS execute_conversion_routines
+      RETURNING
+        VALUE(ro_copy_content_data) TYPE REF TO data .
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -229,14 +233,19 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
 
   METHOD get_content_by_xslt.
 
+    "------------------------------------------------------------
+    "Get settings
+    "------------------------------------------------------------
+    DATA(ls_settings) = get_settings( ).
+
     "----------------------------------------------------------
     "Get labels
     "----------------------------------------------------------
     DATA(lo_text_labels_bo) =
       zeml_text_labels_bo_ft=>get_factory( )->create_ca_text_labels_bo(
         VALUE #(
-          label_set_name = me->gs_data-label_set_name
-          language_id    = me->gs_data-language_id ) ).
+          label_set_name = gs_data-label_set_name
+          language_id    = ls_settings-language_id ) ).
 
     DATA(lo_text_labels_data) = lo_text_labels_bo->get_labels( ).
 
@@ -248,10 +257,6 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
     DATA(lo_content_data) = execute_conversion_routines( ).
 
     ASSIGN lo_content_data->* TO FIELD-SYMBOL(<la_content>).
-
-    "------------------------------------------------------------
-    "Get settings
-    DATA(ls_settings) = get_settings( ).
 
     "----------------------------------------------------------------
     "XSLT transformation
@@ -406,50 +411,51 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
   METHOD get_settings.
 
     "------------------------------------------------------------
+    "Set user
+    IF gs_data-user_name IS NOT INITIAL.
+      DATA(lv_user_name) = gs_data-user_name.
+    ELSE.
+      lv_user_name = sy-uname.
+    ENDIF.
+
+    DATA(lo_user_bo) = zeml_user_bo_ft=>get_factory( )->get_user_bo_by_user_name( lv_user_name ).
+
+    "------------------------------------------------------------
+    "Set language id
+    IF gs_data-language_id IS NOT INITIAL.
+      DATA(lv_language_id) = gs_data-language_id.
+    ELSE.
+      lv_language_id = lo_user_bo->get_language_id( ).
+    ENDIF.
+
+    "------------------------------------------------------------
     "Get country settings
+    "- If gs_data-country_key is initial, than country settings will be retrieved from
+    "  the user.
     DATA(lo_country_settings_bo) =
       zeml_country_settings_bo=>create_by_country_or_user(
         iv_country_key = gs_data-country_key
-        iv_user_name   = gs_data-user_name ).
+        iv_user_name   = lv_user_name ).
 
     DATA(ls_country_settings) =
       lo_country_settings_bo->zeml_country_settings_if~get_country_settings( ).
 
     "------------------------------------------------------------
-    "Get country key
+    "Country key
     IF gs_data-country_key IS NOT INITIAL.
-
       DATA(lv_country_key) = gs_data-country_key.
-
     ELSE.
-
-      "The country settings will be retrieved from the user
-      lv_country_key = ''.
-
+      "Country key is needed for currency symbol placement (left or right)
+      lv_country_key = lo_user_bo->get_country_key( ).
     ENDIF.
 
     "------------------------------------------------------------
-    "Get language ID
-    IF gs_data-language_id IS NOT INITIAL.
-
-      DATA(lv_language_id) = gs_data-language_id.
-
+    "Currency key for currency symbol
+    IF gs_data-country_key IS NOT INITIAL.
+      DATA(lv_currency_key) = gs_data-currency_key.
     ELSE.
-
-      IF gs_data-user_name IS NOT INITIAL.
-
-        DATA(lv_user_name) = gs_data-user_name.
-
-      ELSE.
-
-        lv_user_name = sy-uname.
-
-      ENDIF.
-
-      DATA(lo_user_bo) = zeml_user_bo_ft=>get_factory( )->get_user_bo_by_user_name( lv_user_name ).
-
-      lv_language_id = lo_user_bo->get_language_id( ).
-
+      "We need a currency code for the currency symbol
+      lv_currency_key = lo_user_bo->get_currency_key( ).
     ENDIF.
 
     "------------------------------------------------------------
@@ -486,16 +492,18 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
     rs_settings-country_key             = lv_country_key.
     rs_settings-language_id             = lv_language_id.
     rs_settings-number_format           = ls_country_settings-number_format.
-    rs_settings-currency_key            = gs_data-currency_key.
+    rs_settings-currency_key            = lv_currency_key.
     rs_settings-currency_decimal_count  = lv_currency_decimal_count.
+
     rs_settings-date_format             = ls_country_settings-date_format.
     rs_settings-time_format             = ls_country_settings-time_format.
+    rs_settings-user_name               = lv_user_name.
 
-    "Extra data added for XSLT to show the input values
-    rs_settings-input_country_key   = gs_data-country_key.
-    rs_settings-input_language_id   = gs_data-language_id.
-    rs_settings-input_user_name     = gs_data-user_name.
-    rs_settings-system_user_name    = sy-uname.
+    "Extra data added for XSLT to show the input values of the calling program
+    rs_settings-input_country_key       = gs_data-country_key.
+    rs_settings-input_language_id       = gs_data-language_id.
+    rs_settings-input_user_name         = gs_data-user_name.
+    rs_settings-system_user_name        = sy-uname.
 
   ENDMETHOD.
 
@@ -594,6 +602,13 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
         RAISE EXCEPTION lo_exception.
 
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD set_data.
+
+    gs_data = is_data.
 
   ENDMETHOD.
 ENDCLASS.

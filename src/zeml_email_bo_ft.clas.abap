@@ -1,23 +1,23 @@
-CLASS zeml_email_bo_ft DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class ZEML_EMAIL_BO_FT definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    CLASS-METHODS get_factory
-      RETURNING
-        VALUE(rr_factory) TYPE REF TO zeml_email_bo_ft.
-
-    CLASS-METHODS set_factory
-      IMPORTING ir_factory TYPE REF TO zeml_email_bo_ft.
-
-    METHODS create_email
-      IMPORTING
-        is_email_data      TYPE zeml_email_bo=>gts_data
-      RETURNING
-        VALUE(rr_email_bo) TYPE REF TO zeml_email_bo.
-
+  class-methods GET_FACTORY
+    returning
+      value(RR_FACTORY) type ref to ZEML_EMAIL_BO_FT .
+  class-methods SET_FACTORY
+    importing
+      !IR_FACTORY type ref to ZEML_EMAIL_BO_FT .
+  methods CREATE_EMAIL
+    importing
+      !IS_EMAIL_DATA type ZEML_EMAIL_BO=>GTS_DATA
+    returning
+      value(RR_EMAIL_BO) type ref to ZEML_EMAIL_BO
+    raising
+      ZCX_EML_RETURN3 .
   PROTECTED SECTION.
 
     CLASS-DATA gr_factory TYPE REF TO zeml_email_bo_ft .
@@ -28,7 +28,7 @@ ENDCLASS.
 
 
 
-CLASS zeml_email_bo_ft IMPLEMENTATION.
+CLASS ZEML_EMAIL_BO_FT IMPLEMENTATION.
 
 
   METHOD create_email.
@@ -60,5 +60,4 @@ CLASS zeml_email_bo_ft IMPLEMENTATION.
     gr_factory = ir_factory.
 
   ENDMETHOD.
-
 ENDCLASS.
