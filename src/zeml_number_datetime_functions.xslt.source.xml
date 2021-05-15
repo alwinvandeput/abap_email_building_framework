@@ -4,7 +4,7 @@
   xmlns:eml="http://www.mycompany.com/abapxml"
 >
 
-<!--  Number format based on Language ID -->
+<!--  Number format  -->
 <xsl:decimal-format name="POINT" decimal-separator="." grouping-separator="," />
 <xsl:decimal-format name="COMMA" decimal-separator="," grouping-separator="." />
 <xsl:decimal-format name="SPACE" decimal-separator="," grouping-separator=" " />

@@ -140,7 +140,7 @@
         <xsl:text>Settings:</xsl:text>
         <br/>
         <xsl:text>Country key:</xsl:text><xsl:value-of select="SETTINGS/COUNTRY_KEY"/><br/>
-        <xsl:text>Language id:</xsl:text><xsl:value-of select="SETTINGS/LANGUAGE_ID"/><br/>
+        <xsl:text>Language key:</xsl:text><xsl:value-of select="SETTINGS/LANGUAGE_KEY"/><br/>
         <xsl:text>Currency key:</xsl:text><xsl:value-of select="SETTINGS/CURRENCY_KEY"/><br/>
         <xsl:text>Currency decimal count:</xsl:text><xsl:value-of select="SETTINGS/CURRENCY_DECIMAL_COUNT"/><br/>
         <br/>

@@ -1,16 +1,16 @@
-CLASS zeml_user_bo DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC
+class ZEML_USER_BO definition
+  public
+  final
+  create public
 
-  GLOBAL FRIENDS zeml_user_bo_ft .
+  global friends ZEML_USER_BO_FT .
 
-  PUBLIC SECTION.
+public section.
 
-    INTERFACES zeml_country_settings_if .
+  interfaces ZEML_COUNTRY_SETTINGS_IF .
 
-    TYPES:
-      BEGIN OF gts_detail,
+  types:
+    BEGIN OF gts_detail,
         logondata      TYPE bapilogond,
         defaults       TYPE bapidefaul,
         address        TYPE bapiaddr3,
@@ -49,24 +49,24 @@ CLASS zeml_user_bo DEFINITION
         systems        TYPE STANDARD TABLE OF bapircvsys WITH DEFAULT KEY,
       END OF gts_detail .
 
-    METHODS get_language_id
-      RETURNING
-        VALUE(rv_language_id) TYPE syst-langu .
-    METHODS get_country_key
-      RETURNING
-        VALUE(rv_country_key) TYPE t005x-land
-      RAISING
-        zcx_eml_return3 .
-    METHODS get_detail
-      RETURNING
-        VALUE(rs_detail) TYPE gts_detail
-      RAISING
-        zcx_eml_return3 .
-    METHODS get_currency_key
-      RETURNING
-        VALUE(rv_currency_key) TYPE waers
-      RAISING
-        zcx_eml_return3 .
+  methods GET_LANGUAGE_KEY
+    returning
+      value(RV_LANGUAGE_ID) type SYST-LANGU .
+  methods GET_COUNTRY_KEY
+    returning
+      value(RV_COUNTRY_KEY) type T005X-LAND
+    raising
+      ZCX_EML_RETURN3 .
+  methods GET_DETAIL
+    returning
+      value(RS_DETAIL) type GTS_DETAIL
+    raising
+      ZCX_EML_RETURN3 .
+  methods GET_CURRENCY_KEY
+    returning
+      value(RV_CURRENCY_KEY) type WAERS
+    raising
+      ZCX_EML_RETURN3 .
   PROTECTED SECTION.
 
     DATA gv_user_name TYPE usr01-bname .
@@ -327,7 +327,7 @@ CLASS ZEML_USER_BO IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_language_id.
+  METHOD GET_LANGUAGE_KEY.
 
 *    "----------------------------------------------
 *    "If current user, set system language

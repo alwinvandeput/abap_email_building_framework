@@ -9,7 +9,7 @@ CLASS zeml_text_labels_bo DEFINITION
     TYPES:
       BEGIN OF gts_data,
         label_set_name TYPE thead-tdname,
-        language_id    TYPE syst-langu,
+        language_key   TYPE syst-langu,
       END OF gts_data .
 
     METHODS get_data
@@ -109,7 +109,7 @@ CLASS ZEML_TEXT_LABELS_BO IMPLEMENTATION.
 
     rs_ddic_field =
       lr_element_descr->get_ddic_field(
-        p_langu = me->gs_data-language_id ).
+        p_langu = me->gs_data-language_key ).
 
   ENDMETHOD.
 
@@ -121,7 +121,7 @@ CLASS ZEML_TEXT_LABELS_BO IMPLEMENTATION.
     CALL FUNCTION 'READ_TEXT'
       EXPORTING
         id                      = 'ST'
-        language                = me->gs_data-language_id
+        language                = me->gs_data-language_key
         name                    = me->gs_data-label_set_name
         object                  = 'TEXT'
       TABLES
@@ -237,7 +237,7 @@ CLASS ZEML_TEXT_LABELS_BO IMPLEMENTATION.
         RAISE EXCEPTION TYPE zcx_eml_return3
           MESSAGE e001
           WITH
-          me->gs_data-language_id
+          me->gs_data-language_key
           me->gs_data-label_set_name
           <ls_name_value_label>-name.
 
@@ -303,7 +303,7 @@ CLASS ZEML_TEXT_LABELS_BO IMPLEMENTATION.
             zeml_standard_text_bo_ft=>get_factory( )->get_standard_text_bo_by_key(
               CONV #( lv_rest_value_part ) ).
 
-          <lv_label_text> = lo_standard_text_bo->get_text_string( me->gs_data-language_id ).
+          <lv_label_text> = lo_standard_text_bo->get_text_string( me->gs_data-language_key ).
 
         WHEN OTHERS.
 

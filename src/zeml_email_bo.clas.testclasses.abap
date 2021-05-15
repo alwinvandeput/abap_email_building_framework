@@ -25,7 +25,7 @@ CLASS ltd_text_labels_bo IMPLEMENTATION.
 
   METHOD get_labels.
 
-    CASE me->gs_data-language_id.
+    CASE me->gs_data-language_key.
 
       WHEN 'E'.
 
@@ -124,6 +124,10 @@ CLASS ltd_sales_order_dp DEFINITION FOR TESTING.
   PUBLIC SECTION.
 
     TYPES:
+      BEGIN OF gts_customer,
+        language_id TYPE syst-langu,
+      END OF gts_customer,
+
       BEGIN OF gts_schedule_line,
         quantity     TYPE vbep-wmeng,
         arrival_date TYPE vbep-edatu,
@@ -143,7 +147,7 @@ CLASS ltd_sales_order_dp DEFINITION FOR TESTING.
         nett_amount  TYPE vbak-netwr,
         currency_key TYPE vbak-waerk,
         country_key  TYPE t005x-land,
-        language_id  TYPE syst-langu,
+        customer     TYPE gts_customer,
         items        TYPE STANDARD TABLE OF gts_sales_order_item WITH DEFAULT KEY,
       END OF gts_sales_order.
 
@@ -167,7 +171,9 @@ CLASS ltd_sales_order_dp IMPLEMENTATION.
         nett_amount   = '1700.99'
         currency_key  = iv_currency_key
         country_key   = iv_country_key
-        language_id   = iv_language_id
+        customer = VALUE #(
+          language_id   = iv_language_id
+        )
         items = VALUE #(
           (
             item_no     = '0010'
@@ -220,14 +226,14 @@ CLASS unit_test IMPLEMENTATION.
         "HTML or Text email
         "- HTML: zeml_email_bo=>gcs_content_type-html
         "- Plain text: zeml_email_bo=>gcs_content_type-plain_text
-        DATA(lv_content_type) = zeml_email_bo=>gcs_content_type-html.
+        DATA(lv_test_content_type) = zeml_email_bo=>gcs_content_type-html.
 
-        CASE lv_content_type.
+        CASE lv_test_content_type.
           WHEN zeml_email_bo=>gcs_content_type-html.
-            DATA(lv_template_name) = CONV zeml_email_bo=>gts_data-template_name( 'ZEML_EXAMPLE_SO_HTML_EMAIL' ).
+            DATA(lv_test_template_name) = CONV zeml_email_bo=>gts_data-template_name( 'ZEML_EXAMPLE_SO_HTML_EMAIL' ).
 
           WHEN zeml_email_bo=>gcs_content_type-plain_text.
-            lv_template_name = CONV zeml_email_bo=>gts_data-template_name( 'ZEML_EXAMPLE_SO_TEXT_EMAIL' ).
+            lv_test_template_name = CONV zeml_email_bo=>gts_data-template_name( 'ZEML_EXAMPLE_SO_TEXT_EMAIL' ).
 
         ENDCASE.
 
@@ -282,19 +288,16 @@ CLASS unit_test IMPLEMENTATION.
         DATA(lo_text_labels_bo_ft) = NEW ltd_text_labels_bo_ft( ).
         zeml_text_labels_bo_ft=>set_factory( lo_text_labels_bo_ft ).
 
-        "Send email
-        "- Set Email data
+        "Set Email data
         DATA(ls_email_data) =
           VALUE zeml_email_bo=>gts_data(
-            content_type       = lv_content_type
-            template_name      = lv_template_name
+            content_type       = lv_test_content_type
+            template_name      = lv_test_template_name
             label_set_name     = 'ZEML_EXAMPLE_SO_EMAIL_LABELS'
 
             country_key        = ls_sales_order-country_key
             currency_key       = ls_sales_order-currency_key
-            language_id        = ls_sales_order-language_id
-
-            "user_name          = sy-uname
+            language_key       = ls_sales_order-customer-language_id
 
             importance         = '5'
             sensitivity        = ''
@@ -304,6 +307,7 @@ CLASS unit_test IMPLEMENTATION.
                 name  = 'myCompany - noreply'
                 email = 'noreply@mycompany.nl'
               )
+
             receivers =
               VALUE #(
                 (
@@ -311,6 +315,7 @@ CLASS unit_test IMPLEMENTATION.
                   email = 'alwin.vandeput@mycompany.com'
                 )
               )
+
             email_data = lo_email_data
             attachments = VALUE #( )
           ).

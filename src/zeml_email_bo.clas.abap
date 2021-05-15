@@ -39,7 +39,7 @@ public section.
 
         country_key    TYPE t005x-land,
         currency_key   TYPE tcurx-currkey,
-        language_id    TYPE tdspras,
+        language_key    TYPE tdspras,
         user_name      TYPE usr01-bname,
 
         importance     TYPE bcs_docimp,
@@ -53,7 +53,7 @@ public section.
   types:
     BEGIN OF gts_settings,
         country_key            TYPE t005x-land,
-        language_id            TYPE syst-langu,
+        language_key            TYPE syst-langu,
         currency_key           TYPE tcurc-waers,
         currency_decimal_count TYPE tcurx-currdec,
 
@@ -63,7 +63,7 @@ public section.
         user_name              TYPE syst-uname,
 
         input_country_key      TYPE t005x-land,
-        input_language_id      TYPE syst-langu,
+        input_language_key      TYPE syst-langu,
         input_user_name        TYPE syst-uname,
         system_user_name       TYPE syst-uname,
       END OF gts_settings .
@@ -200,9 +200,9 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
   METHOD execute_conversion_routines.
 
     "Set language
-    DATA(lv_current_user_language_id) = sy-langu.
+    DATA(lv_current_user_language_key) = sy-langu.
 
-    SET LOCALE LANGUAGE me->gs_data-language_id.
+    SET LOCALE LANGUAGE me->gs_data-language_key.
 
     "Create a copy structure variable
     DATA(lo_type_descr) = cl_abap_typedescr=>describe_by_data_ref( me->gs_data-email_data ).
@@ -226,7 +226,7 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
       CHANGING
         ca_data        = <la_copy_content_data> ).
 
-    SET LOCALE LANGUAGE lv_current_user_language_id.
+    SET LOCALE LANGUAGE lv_current_user_language_key.
 
   ENDMETHOD.
 
@@ -245,7 +245,7 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
       zeml_text_labels_bo_ft=>get_factory( )->create_ca_text_labels_bo(
         VALUE #(
           label_set_name = gs_data-label_set_name
-          language_id    = ls_settings-language_id ) ).
+          language_key   = ls_settings-language_key ) ).
 
     DATA(lo_text_labels_data) = lo_text_labels_bo->get_labels( ).
 
@@ -422,10 +422,10 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
 
     "------------------------------------------------------------
     "Set language id
-    IF gs_data-language_id IS NOT INITIAL.
-      DATA(lv_language_id) = gs_data-language_id.
+    IF gs_data-language_key IS NOT INITIAL.
+      DATA(lv_language_key) = gs_data-language_key.
     ELSE.
-      lv_language_id = lo_user_bo->get_language_id( ).
+      lv_language_key = lo_user_bo->get_language_key( ).
     ENDIF.
 
     "------------------------------------------------------------
@@ -490,7 +490,7 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
     "Set setting values
 
     rs_settings-country_key             = lv_country_key.
-    rs_settings-language_id             = lv_language_id.
+    rs_settings-language_key            = lv_language_key.
     rs_settings-number_format           = ls_country_settings-number_format.
     rs_settings-currency_key            = lv_currency_key.
     rs_settings-currency_decimal_count  = lv_currency_decimal_count.
@@ -501,7 +501,7 @@ CLASS ZEML_EMAIL_BO IMPLEMENTATION.
 
     "Extra data added for XSLT to show the input values of the calling program
     rs_settings-input_country_key       = gs_data-country_key.
-    rs_settings-input_language_id       = gs_data-language_id.
+    rs_settings-input_language_key      = gs_data-language_key.
     rs_settings-input_user_name         = gs_data-user_name.
     rs_settings-system_user_name        = sy-uname.
 
